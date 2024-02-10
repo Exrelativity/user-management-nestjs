@@ -26,13 +26,10 @@ export class UserService {
 
   async verifyEmail(userId: any): Promise<void> {
     const user = await this.findOneById(userId);
-
     if (!user) {
       throw new NotFoundException('User not found');
     }
-
     const isEmailVerified = true;
-
     await this.userModel.update(
       { isEmailVerified: isEmailVerified },
       { where: { id: userId } },

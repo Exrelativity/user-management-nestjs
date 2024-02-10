@@ -1,29 +1,27 @@
 import {
   Controller,
   Post,
-  UseGuards,
-  Request,
   Body,
   Get,
   Param,
   NotFoundException,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { ApiResponse, ApiTags, ApiParam, ApiBody } from '@nestjs/swagger';
+import { LoginUserDto } from './dto/login-user.dto';
 
 @Controller('auth')
 @ApiTags('Authentication')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @UseGuards(AuthGuard('local'))
   @Post('login')
   @ApiResponse({ status: 200, description: 'Login successful' })
-  @ApiBody({ type: CreateUserDto })
-  async login(@Request() req) {
-    return this.authService.login(req.user);
+  @ApiBody({ type: LoginUserDto })
+  async login(@Body() loginUserDto: LoginUserDto) {
+    const userLogin = await this.authService.login(loginUserDto);
+    return { status: 200, message: 'Login successful', ...userLogin };
   }
 
   @Post('register')
@@ -31,7 +29,11 @@ export class AuthController {
   @ApiBody({ type: CreateUserDto })
   async register(@Body() createUserDto: CreateUserDto) {
     const user = await this.authService.register(createUserDto);
-    return this.authService.login(user);
+    return {
+      status: 201,
+      user: user,
+      message: 'User registered successfully',
+    };
   }
 
   @Get('verify-email/:token')
@@ -40,7 +42,7 @@ export class AuthController {
   async verifyEmail(@Param('token') token: string) {
     try {
       await this.authService.verifyEmail(token);
-      return { message: 'Email verified successfully' };
+      return { status: 200, message: 'Email verified successfully' };
     } catch (error) {
       throw new NotFoundException('Invalid or expired verification token');
     }
@@ -54,7 +56,10 @@ export class AuthController {
   @ApiBody({ type: CreateUserDto })
   async requestPasswordReset(@Body() body: { email: string }) {
     await this.authService.requestPasswordReset(body.email);
-    return { message: 'Password reset email sent successfully' };
+    return {
+      status: 200,
+      message: 'Password reset email sent successfully',
+    };
   }
 
   @Post('reset-password/:token')
@@ -67,7 +72,7 @@ export class AuthController {
   ) {
     try {
       await this.authService.resetPassword(token, body.newPassword);
-      return { message: 'Password reset successfully' };
+      return { status: 200, message: 'Password reset successfully' };
     } catch (error) {
       throw new NotFoundException('Invalid or expired reset password token');
     }

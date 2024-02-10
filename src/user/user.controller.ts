@@ -31,7 +31,8 @@ export class UserController {
     isArray: true,
   })
   async findAll(): Promise<User[]> {
-    return this.userService.findAll();
+    const users = await this.userService.findAll();
+    return users;
   }
 
   @Get(':id')

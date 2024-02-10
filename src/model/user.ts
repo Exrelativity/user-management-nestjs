@@ -7,10 +7,11 @@ import {
   PrimaryKey,
   Table,
 } from 'sequelize-typescript';
-
+import { v4 as uuidv4 } from 'uuid';
 @Table
 export class User extends Model {
   @ApiProperty()
+  @Default(uuidv4())
   @IsUUID(4)
   @PrimaryKey
   @Column
